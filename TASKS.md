@@ -4,8 +4,12 @@ Format: `- [ ] task (owner) — status / blocker`. Add requests for other lanes 
 
 ## Open decisions (team)
 - [x] Solver: our own numpy/scipy conjugate Frank-Wolfe, not AequilibraE (decided).
-- [ ] config.yaml TODOs: focus polygon, LODES year, demand factors, lane/speed/capacity
-      defaults, solver gap, top_n, snr_threshold (5-10), evac route source.
+- [ ] **Demand factors (blocks 04_base):** commute_days_share, auto_mode_share,
+      vehicle_occupancy, am_peak_hour_share in config.yaml. Until set, 02_demand.py writes
+      od_jobs.csv but not od_am_peak.csv.
+- [ ] Other config.yaml TODOs: focus polygon (still a rough bbox), lane/speed/capacity
+      defaults (30% of links had no maxspeed tag and use the class default), connector
+      settings, solver gap, top_n, snr_threshold (5-10), evac route source.
 
 ## Solver
 - [x] lib/assign.py `solve()` passing pipeline/tests/test_braess.py (Solver)
@@ -18,8 +22,9 @@ Format: `- [ ] task (owner) — status / blocker`. Add requests for other lanes 
 - [ ] Time one Miami solve → choose laptop vs droplet (Solver)
 
 ## Data
-- [ ] 01_network.py (Data)
-- [ ] 02_demand.py (Data)
+- [x] 01_network.py (Data): 5,706 links, 3,100 nodes, 2,244 links in focus
+- [x] 02_demand.py (Data): LODES 2023, 702 zones, 178,432 OD pairs, 811,612 commuters;
+      0.7% dropped (5 Everglades/bay/far-south tracts). Real network: ~1 s per iteration.
 - [ ] 08_export.py (Data)
 
 ## Web
