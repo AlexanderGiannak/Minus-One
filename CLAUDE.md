@@ -32,7 +32,8 @@ Miami subnetwork in the browser, Sioux Falls, Broward gateways, the fleet tab.
 Offline pipeline → static JSON → static React app. **No backend server.** The
 site is read-only; every viewer sees the same precomputed results.
 
-1. **Pipeline** (Python 3.11+, `.venv`, deps pinned in `requirements.txt`).
+1. **Pipeline** (Python 3.11+, `.venv`, deps pinned in `requirements.txt`;
+   our own Frank-Wolfe solver, no AequilibraE).
    Numbered scripts, rerunnable end to end:
    | Script | Does |
    |---|---|
@@ -88,8 +89,11 @@ Link cost: `t(x) = free_time + coef * x**power` (minutes). BPR maps to it as
   `od` = list of `(origin, destination, demand)`.
 - TS: `web/src/solver/frankWolfe.ts`: `solve({links, od, mode, maxIter,
   relGap})` returning `{flow, time, tstt, relativeGap, iterations}`.
-Whether `assign.py` wraps AequilibraE or is our own numpy Frank-Wolfe is still
-open (see TASKS.md).
+Decided: `assign.py` is our own conjugate Frank-Wolfe (numpy + scipy
+`csgraph.dijkstra`), the same algorithm as the TS solver. No AequilibraE: 1.7.0
+has no macOS wheels and its BPR can't express the Braess test's zero-cost links.
+If a Miami solve is too slow, first coarsen zones / cut top_n; AequilibraE 1.7
+on a Linux droplet is the last resort, swapped in behind the same `solve()`.
 
 ## Validation
 - 4-node Braess: 4000 vehicles S→E. S-A = T/100, A-E = 45, S-B = 45,
@@ -125,7 +129,7 @@ data/processed/, runs/  (gitignored) intermediates, one file per solve
 
 ## How to work with us
 - Verify library APIs against installed packages or docs; don't guess
-  signatures (especially AequilibraE, which changed across versions). If
+  signatures (osmnx 2.x removed or moved many 1.x functions). If
   something is uncertain, say so instead of silently picking an answer.
 - Never fabricate data, numbers or file contents. Use clearly labeled fake
   fixtures when real data isn't ready.

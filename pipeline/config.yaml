@@ -71,7 +71,7 @@ cost:
   beta: 4
 
 solver:
-  algorithm: bfw              # biconjugate Frank-Wolfe (AequilibraE) or our own; see TASKS.md
+  algorithm: cfw              # our own conjugate Frank-Wolfe (pipeline/lib/assign.py)
   target_relative_gap: 1.0e-5 # TODO: tighten/loosen after timing one Miami solve
   max_iterations: 1000        # TODO: set after timing
   # Noise floor: solve the base again at this looser gap; the TSTT difference
