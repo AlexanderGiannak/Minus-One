@@ -1,0 +1,54 @@
+{
+ "meta": {
+  "fake": true,
+  "generated_by": "pipeline/make_fixtures.py (FAKE toy data, not results)",
+  "generated_at": "2026-09-26T18:11:49+00:00"
+ },
+ "candidates": [
+  {
+   "link_id": "L12",
+   "delta_tstt": -58.0,
+   "delta_pct": -0.18,
+   "min_saved_per_trip": 0.0116,
+   "snr": 18.0,
+   "flagged": true,
+   "evac_route": false
+  },
+  {
+   "link_id": "L04",
+   "delta_tstt": -24.2,
+   "delta_pct": -0.075,
+   "min_saved_per_trip": 0.0048,
+   "snr": 7.51,
+   "flagged": true,
+   "evac_route": false
+  },
+  {
+   "link_id": "L01",
+   "delta_tstt": -6.4,
+   "delta_pct": -0.02,
+   "min_saved_per_trip": 0.0013,
+   "snr": 1.99,
+   "flagged": false,
+   "evac_route": false
+  },
+  {
+   "link_id": "L02",
+   "delta_tstt": 19.3,
+   "delta_pct": 0.06,
+   "min_saved_per_trip": -0.0039,
+   "snr": 5.99,
+   "flagged": false,
+   "evac_route": false
+  },
+  {
+   "link_id": "L10",
+   "delta_tstt": 80.5,
+   "delta_pct": 0.25,
+   "min_saved_per_trip": -0.0161,
+   "snr": 24.98,
+   "flagged": false,
+   "evac_route": false
+  }
+ ]
+}

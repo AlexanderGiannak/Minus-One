@@ -1,0 +1,102 @@
+{
+ "meta": {
+  "fake": true,
+  "generated_by": "pipeline/make_fixtures.py (FAKE toy data, not results)",
+  "generated_at": "2026-09-26T18:11:49+00:00"
+ },
+ "config": {
+  "project": {
+   "name": "Minus One",
+   "scenario": "am_peak_base"
+  },
+  "network": {
+   "county_name": "Miami-Dade County, Florida, USA",
+   "county_classes": [
+    "motorway",
+    "motorway_link",
+    "trunk",
+    "trunk_link",
+    "primary",
+    "primary_link"
+   ],
+   "focus_extra_classes": [
+    "secondary",
+    "secondary_link",
+    "tertiary",
+    "tertiary_link"
+   ],
+   "focus_polygon_file": null,
+   "focus_bbox": {
+    "west": -80.26,
+    "south": 25.74,
+    "east": -80.12,
+    "north": 25.82
+   },
+   "consolidate_tolerance_m": 15,
+   "default_lanes_per_direction": {
+    "motorway": 3,
+    "trunk": 2,
+    "primary": 2,
+    "secondary": 1,
+    "tertiary": 1,
+    "link": 1
+   },
+   "default_speed_mph": {
+    "motorway": 65,
+    "trunk": 50,
+    "primary": 40,
+    "secondary": 35,
+    "tertiary": 30,
+    "link": 30
+   },
+   "capacity_vph_per_lane": {
+    "motorway": 2000,
+    "trunk": 1800,
+    "primary": 900,
+    "secondary": 800,
+    "tertiary": 700,
+    "link": 1200
+   },
+   "coordinate_decimals": 5,
+   "evac_routes_file": null
+  },
+  "demand": {
+   "source": "LODES8",
+   "state": "fl",
+   "job_type": "JT01",
+   "segment": "S000",
+   "year": null,
+   "workplace_county_fips": "12086",
+   "origin_filter": "miami_dade_only",
+   "zone_level": "tract",
+   "commute_days_share": null,
+   "auto_mode_share": null,
+   "vehicle_occupancy": null,
+   "am_peak_hour_share": null,
+   "demand_multiplier": 1.0
+  },
+  "cost": {
+   "function": "BPR",
+   "alpha": 0.15,
+   "beta": 4
+  },
+  "solver": {
+   "algorithm": "bfw",
+   "target_relative_gap": 1e-05,
+   "max_iterations": 1000,
+   "noise_check_relative_gap": 0.0001
+  },
+  "screening": {
+   "focus_area_only": true,
+   "top_n": 75,
+   "rank_by": "ue_minus_so_flow"
+  },
+  "flagging": {
+   "snr_threshold": 5
+  },
+  "export": {
+   "closure_delta_min_share": 0.01,
+   "max_network_geojson_mb": 10
+  }
+ }
+}
