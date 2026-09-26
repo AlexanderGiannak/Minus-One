@@ -1,4 +1,4 @@
-// 4-node Braess network. Expected to FAIL until src/solver/frankWolfe.ts exists.
+// 4-node Braess network, run against src/solver/frankWolfe.ts.
 // Same cases and expected values as pipeline/tests/test_braess.py (derivation there).
 import { describe, expect, it } from 'vitest'
 import { solve as fw } from './frankWolfe'
@@ -47,5 +47,14 @@ describe('4-node Braess network', () => {
 
   it('SO without shortcut equals UE', async () => {
     near((await solve(LINKS, 'SO')).tstt, 260_000, 26)
+  })
+})
+
+describe('frankWolfe edge cases', () => {
+  it('splits flow evenly across parallel links', async () => {
+    const par: Link[] = ['p1', 'p2'].map((id) => ({ id, a_node: 'A', b_node: 'B', free_time: 1, coef: 0.001, power: 1 }))
+    const r = fw({ links: par, od: [['A', 'B', 1000]], mode: 'UE', maxIter: 500, relGap: 1e-8 })
+    near(r.flow.p1, 500, 0.5)
+    near(r.flow.p2, 500, 0.5)
   })
 })
