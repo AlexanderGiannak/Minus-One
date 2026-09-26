@@ -1,0 +1,93 @@
+# Minus One: every modeling assumption lives here and is shown in the app
+# (copied into web/public/data/assumptions.json by 08_export.py).
+# Values marked TODO are placeholders the team has not decided yet.
+# Units: minutes, vehicles per hour, meters, mph where noted.
+
+project:
+  name: Minus One
+  scenario: am_peak_base
+
+network:
+  # All of Miami-Dade at these classes...
+  county_name: "Miami-Dade County, Florida, USA"
+  county_classes: [motorway, motorway_link, trunk, trunk_link, primary, primary_link]
+  # ...plus these classes inside the focus polygon.
+  focus_extra_classes: [secondary, secondary_link, tertiary, tertiary_link]
+  # Focus area: Downtown, Brickell, Wynwood, Edgewater, Little Havana, and the
+  # causeways to Miami Beach.
+  # TODO: replace this rough bounding box with a real polygon (GeoJSON file).
+  focus_polygon_file: null
+  focus_bbox: {west: -80.26, south: 25.74, east: -80.12, north: 25.82}  # TODO rough guess
+  # Merge intersections whose nodes are within this distance.
+  consolidate_tolerance_m: 15  # TODO confirm
+  # Defaults when OSM tags are missing. TODO: all values below are initial
+  # guesses by road class, not sourced; confirm or cite before the demo.
+  default_lanes_per_direction:
+    motorway: 3
+    trunk: 2
+    primary: 2
+    secondary: 1
+    tertiary: 1
+    link: 1
+  default_speed_mph:
+    motorway: 65
+    trunk: 50
+    primary: 40
+    secondary: 35
+    tertiary: 30
+    link: 30
+  capacity_vph_per_lane:
+    motorway: 2000
+    trunk: 1800
+    primary: 900
+    secondary: 800
+    tertiary: 700
+    link: 1200
+  coordinate_decimals: 5
+  # Links on hurricane evacuation routes get evac_route = true in candidates.json.
+  evac_routes_file: null  # TODO: source (e.g. Miami-Dade open data); null -> all false
+
+demand:
+  source: LODES8
+  state: fl
+  job_type: JT01          # primary jobs
+  segment: S000           # all workers
+  year: null              # TODO: latest year available in LODES8 (check the LEHD site)
+  workplace_county_fips: "12086"   # Miami-Dade
+  origin_filter: miami_dade_only   # Broward origins are out of scope
+  zone_level: tract
+  # Daily commuters -> AM peak-hour vehicle trips:
+  #   trips = jobs * commute_days_share * auto_mode_share / vehicle_occupancy
+  #           * am_peak_hour_share * demand_multiplier
+  commute_days_share: null   # TODO: share of workers commuting on a given weekday
+  auto_mode_share: null      # TODO: e.g. from ACS for Miami-Dade
+  vehicle_occupancy: null    # TODO: persons per vehicle
+  am_peak_hour_share: null   # TODO: share of morning commute trips in the peak hour
+  demand_multiplier: 1.0     # global scale on all trips
+
+cost:
+  function: BPR   # t = t0 * (1 + alpha * (v/c)^beta)
+  alpha: 0.15     # standard BPR value
+  beta: 4
+
+solver:
+  algorithm: bfw              # biconjugate Frank-Wolfe (AequilibraE) or our own; see TASKS.md
+  target_relative_gap: 1.0e-5 # TODO: tighten/loosen after timing one Miami solve
+  max_iterations: 1000        # TODO: set after timing
+  # Noise floor: solve the base again at this looser gap; the TSTT difference
+  # is the noise estimate used for SNR.
+  noise_check_relative_gap: 1.0e-4  # TODO confirm
+
+screening:
+  focus_area_only: true
+  top_n: 75              # TODO: 50-100 depending on solve time
+  rank_by: ue_minus_so_flow
+
+flagging:
+  # Flag a removal only if it lowers TSTT by at least this many times the
+  # noise floor. The brief says 5-10x.
+  snr_threshold: 5       # TODO: team to pick within 5-10; do not lower to find results
+
+export:
+  closure_delta_min_share: 0.01   # keep links whose flow changes by >1% of base
+  max_network_geojson_mb: 10

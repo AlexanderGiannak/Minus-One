@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.DS_Store
+
+# Raw downloads and intermediates are rebuilt by the pipeline
+data/raw/
+data/processed/
+runs/

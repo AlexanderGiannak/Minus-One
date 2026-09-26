@@ -1,0 +1,12 @@
+# Python 3.11+ (tested with 3.12). Install: uv pip install -r requirements.txt
+osmnx==2.1.1
+geopandas==1.1.4
+shapely==2.1.2
+pandas==3.0.6
+numpy==2.5.3
+pyproj==3.8.0
+pyyaml==6.0.3
+pytest==9.1.1
+# aequilibrae 1.7.0 ships wheels for Linux and Windows only; it fails to build
+# from source on macOS (clang has no -fopenmp). See TASKS.md before enabling.
+# aequilibrae==1.7.0
