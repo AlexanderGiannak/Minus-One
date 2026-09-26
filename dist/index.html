@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Minus One — Braess Lab</title>
+  <meta name="description" content="Explore Braess’s paradox: change traffic density, close the shortcut, and compare travel times.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b151d'/%3E%3Cpath d='M8 16h16' stroke='%235de4ce' stroke-width='4'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="vendor/leaflet.css">
+  <link rel="stylesheet" href="miami.css">
+</head>
+<body>
+<header><a class="brand" href="./"><span class="brand-mark">−1</span> MINUS ONE <span class="brand-detail">/ BRAESS LAB</span></a><span class="header-note">MIAMI HACKATHON · CONCEPT SIMULATOR</span></header>
+<nav class="page-tabs" role="tablist" aria-label="Experiments"><button id="simulator-tab" role="tab" aria-selected="true" aria-controls="simulator-panel">Simulator</button><button id="miami-tab" role="tab" aria-selected="false" aria-controls="miami-panel" tabindex="-1">Miami Streets</button></nav>
+<main id="simulator-panel" role="tabpanel" aria-labelledby="simulator-tab">
+  <aside>
+    <div class="eyebrow">THE SHORTCUT EXPERIMENT</div>
+    <h1>One less road. <br>A faster trip?</h1>
+    <p class="intro">Change the traffic. Close the shortcut. Watch drivers find their fastest routes.</p>
+    <section class="control">
+      <div class="label-row"><label for="density">Traffic density</label><span id="density-label">Moderate</span></div>
+      <div class="demand"><output id="demand" for="density">4,000</output><span>vehicles / hour</span></div>
+      <input id="density" type="range" min="0" max="12000" step="100" value="4000" aria-describedby="density-help">
+      <div class="range-labels"><span>Empty</span><span>Heavy</span></div>
+      <p id="density-help" class="micro">Density controls how many drivers enter the network each hour.</p>
+    </section>
+    <section class="control shortcut-control">
+      <div><label for="shortcut">Shortcut</label><p id="shortcut-label" class="micro">Open · A → B</p></div>
+      <label class="switch"><input id="shortcut" type="checkbox" role="switch" checked aria-label="Open shortcut"><span class="switch-track"></span></label>
+    </section>
+    <section class="result" aria-live="polite" aria-atomic="true">
+      <div class="eyebrow" id="change-heading">IF YOU CLOSE THE SHORTCUT</div>
+      <div class="change"><span id="delta">15</span><span id="delta-unit">min faster</span></div>
+      <p id="change-detail">18.8% less travel time per driver</p>
+      <div class="comparison"><div><span>Shortcut open</span><strong id="open-time">80 min</strong></div><div><span>Shortcut closed</span><strong id="closed-time">65 min</strong></div></div>
+    </section>
+    <p class="assumption">Same drivers. Same destinations. Only the shortcut changes.</p>
+  </aside>
+  <section class="stage" aria-labelledby="network-heading">
+    <div class="stage-top"><div><div class="eyebrow">LIVE EQUILIBRIUM</div><h2 id="network-heading">The road network</h2></div><div class="current"><span>Average trip</span><strong id="current-time">80 <small>min</small></strong></div></div>
+    <div class="network-wrap">
+      <svg id="network" viewBox="0 0 800 460" role="img" aria-labelledby="network-title network-description">
+        <title id="network-title">Four-intersection Braess network</title><desc id="network-description">Drivers travel from Start to Finish using upper, lower, or shortcut routes.</desc>
+        <defs><pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#263440"/></pattern></defs>
+        <rect width="800" height="460" fill="url(#grid)"/>
+        <g class="roads"><path id="road0" d="M90 230 L370 85"/><path id="road1" d="M370 85 L710 230"/><path id="road2" d="M90 230 L430 375"/><path id="road3" d="M430 375 L710 230"/><path id="road4" d="M370 85 L430 375"/></g>
+        <g id="cars" aria-hidden="true"></g>
+        <g class="edge-label"><g transform="translate(177 100)"><rect x="-62" y="-24" width="124" height="51" rx="8"/><text id="cost0" y="-3">40 min →</text><text class="flow" id="flow0" y="16">4,000 veh/h</text></g><g transform="translate(581 102)"><rect x="-62" y="-24" width="124" height="51" rx="8"/><text y="-3">45 min →</text><text class="flow" id="flow1" y="16">0 veh/h</text></g><g transform="translate(208 370)"><rect x="-62" y="-24" width="124" height="51" rx="8"/><text y="-3">45 min →</text><text class="flow" id="flow2" y="16">0 veh/h</text></g><g transform="translate(622 351)"><rect x="-62" y="-24" width="124" height="51" rx="8"/><text id="cost3" y="-3">40 min →</text><text class="flow" id="flow3" y="16">4,000 veh/h</text></g><g transform="translate(474 218)"><rect x="-60" y="-25" width="120" height="70" rx="8"/><text id="shortcut-status" y="-5">SHORTCUT ↓</text><text id="shortcut-time" y="16">0 min</text><text class="flow" id="flow4" y="34">4,000 veh/h</text></g></g>
+        <g class="nodes"><circle cx="90" cy="230" r="24"/><circle cx="370" cy="85" r="22"/><circle cx="430" cy="375" r="22"/><circle cx="710" cy="230" r="24"/><text x="90" y="236">S</text><text x="370" y="91">A</text><text x="430" y="381">B</text><text x="710" y="236">T</text></g>
+        <g class="node-label"><text x="90" y="282">START</text><text x="710" y="282">FINISH</text></g>
+      </svg>
+    </div>
+    <div class="legend"><span><i class="variable"></i>Congestible road · flow ÷ 100 min</span><span><i class="fixed"></i>Fixed road · 45 min</span><button id="pause" type="button" aria-pressed="false">Pause motion</button></div>
+    <div class="insight"><span class="insight-symbol">↳</span><p id="insight">The shortcut draws everyone onto both congestible roads. Closing it splits drivers between the two outer routes.</p></div>
+    <div class="routes"><div><span>Upper route <small>S → A → T</small></span><strong id="upper-share">0%</strong><div class="bar"><i id="upper-bar"></i></div></div><div><span>Shortcut route <small>S → A → B → T</small></span><strong id="cross-share">100%</strong><div class="bar"><i id="cross-bar"></i></div></div><div><span>Lower route <small>S → B → T</small></span><strong id="lower-share">0%</strong><div class="bar"><i id="lower-bar"></i></div></div></div>
+    <footer>Illustrative network, not Miami street data. Travel times are exact for this simplified route-choice model. Moving dots illustrate flow, not individual trip durations.</footer>
+  </section>
+</main>
+<main id="miami-panel" role="tabpanel" aria-labelledby="miami-tab" hidden>
+  <aside class="miami-sidebar">
+    <div class="eyebrow">MIAMI STREETS</div><h1>Rethink the route.</h1>
+    <p class="intro">Select a highlighted street segment to test a closure.</p><p class="miami-model-label">Real streets · synthetic traffic · two-way model</p>
+    <label class="field-label" for="neighborhood">Neighborhood</label>
+    <select id="neighborhood"><option value="downtown">Downtown</option><option value="brickell">Brickell</option><option value="overtown">Overtown</option><option value="wynwood">Wynwood</option></select>
+    <section class="miami-comparison" aria-live="polite" aria-atomic="true">
+      <div class="baseline"><span>Initial estimated time <small>FIXED BASELINE</small></span><strong id="miami-before">—</strong></div>
+      <div class="after"><span>After street closures</span><strong id="miami-after">—</strong></div>
+      <div id="miami-change" class="miami-change">Loading street network…</div>
+      <p id="miami-result-note">Same trips and demand in both scenarios.</p>
+    </section>
+    <section class="selected-street" aria-labelledby="street-title"><div class="eyebrow">SELECTED SEGMENT</div><h2 id="street-title">Choose a street</h2><p id="street-detail">Click a colored line on the map, or choose a segment below.</p><label class="field-label" for="street-picker">Street segment</label><select id="street-picker"><option value="">Choose a segment…</option></select><button id="delete-street" class="primary-action" disabled>Delete street from simulation</button></section>
+    <section class="closure-section"><div class="label-row"><h2>Closed streets</h2><span id="closure-count">0</span></div><ul id="closed-streets"></ul><button id="restore-streets" disabled>Restore all streets</button></section>
+    <details class="model-details"><summary>How this estimate works</summary><p>Actual Miami-Dade street centerlines, synthetic demand and road costs. Drivers choose their fastest route until the network reaches equilibrium. Every street is treated as two-way; a closure removes both modeled directions. Colors show modeled flow relative to assumed capacity, not live traffic.</p><p id="scenario-detail"></p><p>Neighborhood boundaries limit detours. Real one-way rules, turn restrictions, traffic signals, queues and trip demand are not calibrated. A benefit here demonstrates the model, not a recommendation to close a Miami street.</p></details>
+  </aside>
+  <section class="miami-stage"><div class="stage-top"><div><div class="eyebrow">STREET CLOSURE LAB</div><h2 id="miami-area-title">Downtown Miami</h2></div><span class="simulation-badge">SIMULATED TRAFFIC</span></div><div class="map-shell"><div id="miami-map" aria-label="Interactive Miami street closure map"></div><div id="map-status" role="status">Loading Miami streets…</div></div><div class="map-legend"><span><i class="high"></i>High density</span><span><i class="medium"></i>Medium density</span><span><i class="low"></i>Low density</span><span><i class="closed"></i>Closed</span></div><div class="miami-insight" id="miami-insight">Closing a road can help, hurt, or leave travel time unchanged. Test the network to find out.</div><button id="example-street" class="example-link" hidden>Locate an example Braess segment</button><footer>Street centerlines: <a href="https://gisweb.miamidade.gov/arcgis/rest/services/MD_LandInformation/MapServer/73" target="_blank" rel="noopener">Miami-Dade GeoStreets</a>. Basemap © OpenStreetMap contributors. Educational what-if model. Each neighborhood keeps its own fixed baseline and closures.</footer></section>
+</main>
+<script src="model.js"></script><script src="app.js"></script>
+<script src="vendor/leaflet.js"></script><script src="miami-data.js"></script><script src="traffic-model.js"></script><script src="miami.js"></script>
+</body></html>
