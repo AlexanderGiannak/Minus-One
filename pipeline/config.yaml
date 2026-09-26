@@ -69,10 +69,17 @@ demand:
   # Daily commuters -> AM peak-hour vehicle trips:
   #   trips = jobs * commute_days_share * auto_mode_share / vehicle_occupancy
   #           * am_peak_hour_share * demand_multiplier
-  commute_days_share: null   # TODO: share of workers commuting on a given weekday
-  auto_mode_share: null      # TODO: e.g. from ACS for Miami-Dade
-  vehicle_occupancy: null    # TODO: persons per vehicle
-  am_peak_hour_share: null   # TODO: share of morning commute trips in the peak hour
+  # Sources: ACS 2024 1-year, Miami-Dade County (tables B08301, B08302), via
+  # Census Reporter. Rough estimates for a proof of concept, not calibrated.
+  commute_days_share: 0.778   # (1 - 0.135 worked from home) x 0.90 attendance; 0.90 is a JUDGMENT (absences, part-week/hybrid), not data
+  auto_mode_share: 0.894      # car/truck/van / workers not working from home
+  vehicle_occupancy: 1.080    # persons / vehicles from carpool sizes (5-6 -> 5.5, 7+ -> 7)
+  am_peak_hour_share: 0.228   # departures 7:00-7:59 / all commute departures (busiest hour)
+  factor_sources: >-
+    ACS 2024 1-year, Miami-Dade (B08301 means of transportation, B08302 time of
+    departure). commute_days_share includes a judgment-based 0.90 attendance
+    factor. Only commute trips are modeled (no school, errand or freight trips),
+    so peak traffic is underestimated; Broward commuters are excluded.
   demand_multiplier: 1.0     # global scale on all trips
 
 connectors:

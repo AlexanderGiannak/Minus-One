@@ -4,9 +4,9 @@ Format: `- [ ] task (owner) — status / blocker`. Add requests for other lanes 
 
 ## Open decisions (team)
 - [x] Solver: our own numpy/scipy conjugate Frank-Wolfe, not AequilibraE (decided).
-- [ ] **Demand factors (blocks 04_base):** commute_days_share, auto_mode_share,
-      vehicle_occupancy, am_peak_hour_share in config.yaml. Until set, 02_demand.py writes
-      od_jobs.csv but not od_am_peak.csv.
+- [x] Demand factors set from ACS 2024 1-year (B08301, B08302) for Miami-Dade; the 0.90
+      attendance part of commute_days_share is a judgment call. -> ~119,200 AM peak trips.
+      Only commute trips are modeled, so peak traffic is underestimated.
 - [ ] Other config.yaml TODOs: focus polygon (still a rough bbox), lane/speed/capacity
       defaults (30% of links had no maxspeed tag and use the class default), connector
       settings, solver gap, top_n, snr_threshold (5-10), evac route source.
