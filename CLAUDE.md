@@ -51,8 +51,9 @@ site is read-only; every viewer sees the same precomputed results.
 
 2. **Web app** (`web/`, Vite + React + TypeScript), static-hosted. MapLibre GL
    JS, one line layer (width = flow, color = v/c) updated via feature-state;
-   self-hosted PMTiles basemap so the demo works offline (TODO; the Sandbox
-   map currently has no basemap). Import MapLibre only via `src/map/maplibre.ts`,
+   self-hosted PMTiles basemap so the demo works offline (TODO). The Sandbox
+   currently uses online OpenStreetMap raster tiles (needs internet; streets
+   and closures still work if tiles fail). Import MapLibre only via `src/map/maplibre.ts`,
    which wires up its worker for Vite.
    Tabs:
    - **The Paradox**: 4-node network, demand slider, shortcut toggle,

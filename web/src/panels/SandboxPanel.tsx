@@ -168,13 +168,33 @@ export default function SandboxPanel({ active }: { active: boolean }) {
     if (!mapEl.current || !data) return
     const m = new maplibregl.Map({
       container: mapEl.current,
-      style: { version: 8, sources: {}, layers: [{ id: 'background', type: 'background', paint: { 'background-color': '#dce4e6' } }] },
+      // OpenStreetMap raster tiles (needs internet). If they fail, the plain
+      // background stays and streets/closures keep working.
+      style: {
+        version: 8,
+        sources: {
+          osm: {
+            type: 'raster',
+            tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+            tileSize: 256,
+            maxzoom: 19,
+            attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors',
+          },
+        },
+        layers: [
+          { id: 'background', type: 'background', paint: { 'background-color': '#dce4e6' } },
+          { id: 'osm', type: 'raster', source: 'osm' },
+        ],
+      },
       center: [-80.193, 25.779],
       zoom: 15,
       attributionControl: false,
     })
     m.addControl(new maplibregl.AttributionControl({ compact: false, customAttribution: 'Street centerlines: Miami-Dade GeoStreets' }))
     m.addControl(new maplibregl.NavigationControl({ showCompass: false }))
+    m.on('error', (e) => {
+      if ((e as { sourceId?: string }).sourceId === 'osm') setStatus('Basemap tiles unavailable. Street geometry and closure controls still work.')
+    })
     m.on('load', () => {
       m.addSource('streets', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } })
       const width: maplibregl.ExpressionSpecification = ['case', ['==', ['get', 'selected'], true], 10, 6]
@@ -356,7 +376,7 @@ export default function SandboxPanel({ active }: { active: boolean }) {
           const [[w, so], [e, no]] = segmentBounds(s)
           selectStreet(s.id, [(w + e) / 2, (so + no) / 2])
         }}>Locate an example Braess segment</button>
-        <footer>Street centerlines: <a href="https://gisweb.miamidade.gov/arcgis/rest/services/MD_LandInformation/MapServer/73" target="_blank" rel="noopener">Miami-Dade GeoStreets</a>. No basemap, so the demo works offline. Educational what-if model. Each neighborhood keeps its own fixed baseline and closures.</footer>
+        <footer>Street centerlines: <a href="https://gisweb.miamidade.gov/arcgis/rest/services/MD_LandInformation/MapServer/73" target="_blank" rel="noopener">Miami-Dade GeoStreets</a>. Basemap © OpenStreetMap contributors (needs internet; streets and closures work without it). Educational what-if model. Each neighborhood keeps its own fixed baseline and closures.</footer>
       </section>
     </main>
   )
