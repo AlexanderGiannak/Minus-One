@@ -1,70 +1,50 @@
-import { useEffect, useState } from 'react'
-import type { Assumptions, Base, Candidates } from './types/contract'
+import { useRef, useState, type KeyboardEvent } from 'react'
+import AssumptionsPanel from './panels/AssumptionsPanel'
+import MiamiPanel from './panels/MiamiPanel'
+import ParadoxPanel from './panels/ParadoxPanel'
+import SandboxPanel from './panels/SandboxPanel'
 
-// Minimal shell: tabs + fixture loading. Panels live in src/panels (TODO).
-const TABS = ['The Paradox', 'Sandbox', 'Miami', 'Assumptions'] as const
-type Tab = (typeof TABS)[number]
-
-async function getJson<T>(name: string): Promise<T> {
-  const res = await fetch(`${import.meta.env.BASE_URL}data/${name}`)
-  if (!res.ok) throw new Error(`${name}: HTTP ${res.status}`)
-  return res.json() as Promise<T>
-}
+const TABS = [
+  { id: 'paradox', label: 'The Paradox' },
+  { id: 'sandbox', label: 'Sandbox' },
+  { id: 'miami', label: 'Miami' },
+  { id: 'assumptions', label: 'Assumptions' },
+] as const
+type TabId = (typeof TABS)[number]['id']
 
 export default function App() {
-  const [tab, setTab] = useState<Tab>('The Paradox')
-  const [base, setBase] = useState<Base>()
-  const [cands, setCands] = useState<Candidates>()
-  const [assumptions, setAssumptions] = useState<Assumptions>()
-  const [error, setError] = useState<string>()
+  const [tab, setTab] = useState<TabId>('paradox')
+  const buttons = useRef<(HTMLButtonElement | null)[]>([])
 
-  useEffect(() => {
-    Promise.all([
-      getJson<Base>('base.json'),
-      getJson<Candidates>('candidates.json'),
-      getJson<Assumptions>('assumptions.json'),
-    ])
-      .then(([b, c, a]) => { setBase(b); setCands(c); setAssumptions(a) })
-      .catch((e: Error) => setError(e.message))
-  }, [])
+  // Arrow keys / Home / End move between tabs (WAI-ARIA tabs pattern).
+  function onKeyDown(e: KeyboardEvent, index: number) {
+    const last = TABS.length - 1
+    const next = { ArrowLeft: index ? index - 1 : last, ArrowRight: index === last ? 0 : index + 1, Home: 0, End: last }[e.key]
+    if (next === undefined) return
+    e.preventDefault()
+    setTab(TABS[next].id)
+    buttons.current[next]?.focus()
+  }
 
   return (
-    <main>
-      <h1>Minus One</h1>
-      {base?.meta.fake && (
-        <p className="banner">FAKE fixture data: placeholder numbers, not results.</p>
-      )}
-      {error && <p className="banner">Could not load data: {error}</p>}
-      <nav>
-        {TABS.map((t) => (
-          <button key={t} aria-pressed={t === tab} onClick={() => setTab(t)}>{t}</button>
+    <>
+      <header>
+        <a className="brand" href="./"><span className="brand-mark">−1</span> MINUS ONE <span className="brand-detail">/ BRAESS LAB</span></a>
+        <span className="header-note">SHELLHACKS 2026 · PROOF OF CONCEPT</span>
+      </header>
+      <nav className="page-tabs" role="tablist" aria-label="Sections">
+        {TABS.map((t, i) => (
+          <button key={t.id} id={`tab-${t.id}`} role="tab" aria-selected={tab === t.id} tabIndex={tab === t.id ? 0 : -1}
+            ref={(el) => { buttons.current[i] = el }} onClick={() => setTab(t.id)} onKeyDown={(e) => onKeyDown(e, i)}>
+            {t.label}
+          </button>
         ))}
       </nav>
-
-      {tab === 'The Paradox' && <p>TODO: 4-node Braess demo (src/panels, src/solver).</p>}
-      {tab === 'Sandbox' && <p>TODO: editable small network.</p>}
-
-      {tab === 'Miami' && base && cands && (
-        <section>
-          <p>
-            TSTT (UE) {base.tstt_ue.toLocaleString()} veh-min · TSTT (SO){' '}
-            {base.tstt_so.toLocaleString()} veh-min · price of anarchy {base.price_of_anarchy}
-          </p>
-          <p>TODO: map (src/map). Candidates for study:</p>
-          <ul>
-            {cands.candidates.map((c) => (
-              <li key={c.link_id}>
-                {c.link_id}: ΔTSTT {c.delta_tstt} veh-min ({c.delta_pct}%), SNR {c.snr}
-                {c.flagged ? ' · flagged' : ''}
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      {tab === 'Assumptions' && assumptions && (
-        <pre>{JSON.stringify(assumptions.config, null, 2)}</pre>
-      )}
-    </main>
+      {/* Paradox and Sandbox stay mounted so animation state and sandbox closures persist across tabs. */}
+      <div hidden={tab !== 'paradox'}><ParadoxPanel /></div>
+      <SandboxPanel active={tab === 'sandbox'} />
+      {tab === 'miami' && <MiamiPanel />}
+      {tab === 'assumptions' && <AssumptionsPanel />}
+    </>
   )
 }

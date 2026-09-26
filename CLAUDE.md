@@ -21,6 +21,9 @@ Sept 27, 11:00 a.m. ET. Feature freeze 9:00 a.m. Sponsor challenge: Waymo
   finding.
 - If the analysis finds no flagged roads, that is a valid result. Do not
   loosen thresholds to manufacture one.
+- The Sandbox uses real street geometry with SYNTHETIC costs tuned to show a
+  Braess effect. It must stay labeled as a teaching example and never feed the
+  Miami tab or be described as a finding about those streets.
 
 ## Scope (decided; no stretch goals)
 In: the 4-node paradox demo, a sandbox, Miami base UE/SO, candidate screening
@@ -48,10 +51,22 @@ site is read-only; every viewer sees the same precomputed results.
 
 2. **Web app** (`web/`, Vite + React + TypeScript), static-hosted. MapLibre GL
    JS, one line layer (width = flow, color = v/c) updated via feature-state;
-   self-hosted PMTiles basemap so the demo works offline. Our own Frank-Wolfe
-   solver in a Web Worker powers the paradox demo and the sandbox.
-   Tabs: The Paradox | Sandbox | Miami (candidate list + diff view: red =
-   gained flow, blue = lost, dashed = removed) | Assumptions.
+   self-hosted PMTiles basemap so the demo works offline (TODO; the Sandbox
+   map currently has no basemap). Import MapLibre only via `src/map/maplibre.ts`,
+   which wires up its worker for Vite.
+   Tabs:
+   - **The Paradox**: 4-node network, demand slider, shortcut toggle,
+     animated flow. Exact closed-form equilibrium (`solver/braessClosedForm.ts`).
+   - **Sandbox**: close streets in four small Miami neighborhoods (Downtown,
+     Brickell, Overtown, Wynwood). Miami-Dade GeoStreets geometry, all streets
+     two-way, one S→T trip of 1,400 veh/h, synthetic affine costs.
+     Solved by path equilibration (`solver/pathEquilibration.ts`) in a Web
+     Worker. Data: `web/public/sandbox/neighborhoods.json`, built by
+     `pipeline/sandbox/prepare_streets.py` + `web/scripts/build-presets.ts`.
+   - **Miami**: candidate list + diff view (red = gained flow, blue = lost,
+     dashed = removed), from the data contract.
+   - **Assumptions**: config.yaml as shipped in `assumptions.json`.
+   Paradox and Sandbox were originally built by emmanguyen1 (emma1 branch).
 
 ## Data contract (`web/public/data/`)
 Types: `web/src/types/contract.ts`. Validator: `pipeline/contract.py`
@@ -88,7 +103,10 @@ Link cost: `t(x) = free_time + coef * x**power` (minutes). BPR maps to it as
   `links` = list of dicts `{id, a_node, b_node, free_time, coef, power}`;
   `od` = list of `(origin, destination, demand)`.
 - TS: `web/src/solver/frankWolfe.ts`: `solve({links, od, mode, maxIter,
-  relGap})` returning `{flow, time, tstt, relativeGap, iterations}`.
+  relGap})` returning `{flow, time, tstt, relativeGap, iterations}`. General
+  (BPR-capable, UE and SO); not yet used by a tab.
+- Tree loading must go children-before-parents by tree order (Dijkstra settle
+  order in TS, depth in Python), never by distance alone: zero-cost links tie.
 Decided: `assign.py` is our own conjugate Frank-Wolfe (numpy + scipy
 `csgraph.dijkstra`), the same algorithm as the TS solver. No AequilibraE: 1.7.0
 has no macOS wheels and its BPR can't express the Braess test's zero-cost links.
@@ -102,6 +120,9 @@ on a Linux droplet is the last resort, swapped in behind the same `solve()`.
   shortcut: 1750 / 1750 / 500 on the three routes, TSTT 258,750 (derived, see
   the test). Tests: `pipeline/tests/test_braess.py`,
   `web/src/solver/braess.test.ts`.
+- Paradox/Sandbox: `braessClosedForm.test.ts` (every slider value: conservation,
+  Wardrop, totals) and `pathEquilibration.test.ts` (classic Braess, each
+  neighborhood's baseline, teaching closure, disconnection, restoration).
 - Essential metrics: TSTT_UE, TSTT_SO, price of anarchy; ΔTSTT and minutes
   saved per trip for each removal; relative gap + noise floor → SNR.
 
@@ -109,7 +130,9 @@ on a Linux droplet is the last resort, swapped in behind the same `solve()`.
 ```
 pipeline/  config.yaml, 01_network.py … 08_export.py, lib/, contract.py,
            make_fixtures.py, tests/
-web/       src/{solver,map,panels,types}, public/data/
+web/       src/{solver,map,panels,sandbox,types}, public/data/,
+           public/sandbox/, scripts/build-presets.ts
+pipeline/sandbox/prepare_streets.py   Sandbox street graphs from GeoStreets
 data/raw/  (gitignored) raw downloads
 data/processed/, runs/  (gitignored) intermediates, one file per solve
 ```
@@ -119,13 +142,15 @@ data/processed/, runs/  (gitignored) intermediates, one file per solve
 |---|---|
 | Data | `01`, `02`, `08`, `contract.py`, `make_fixtures.py` |
 | Solver | `lib/assign.py`, `04`–`06`, `pipeline/tests/` |
-| App and map | App shell, tabs, `src/map`, Miami + Assumptions panels, `src/types/contract.ts` |
-| Browser solver | `src/solver`, Paradox + Sandbox panels, Devpost/video |
+| App and map | App shell, tabs, styles, `src/map`, Miami + Assumptions panels, `src/types/contract.ts` |
+| Browser solver | `src/solver`, `src/sandbox`, Paradox + Sandbox panels, sandbox data and scripts, Devpost/video |
 
 ## Commands
 - Python: `source .venv/bin/activate && pytest`
 - Fixtures: `python pipeline/make_fixtures.py`
-- Web: `cd web && npm run dev` / `npm test` / `npm run build`
+- Web: `cd web && npm run dev` / `npm test` / `npm run lint` / `npm run build`
+- Sandbox data: `python pipeline/sandbox/prepare_streets.py <GeoStreets pages>`
+  then `node web/scripts/build-presets.ts`
 
 ## How to work with us
 - Verify library APIs against installed packages or docs; don't guess

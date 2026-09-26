@@ -101,7 +101,22 @@ def _all_or_nothing(net, cost, od_by_origin):
             if p >= 0 and p not in todo:
                 todo.add(int(p))
                 stack.append(int(p))
-        nodes = sorted(todo, key=lambda v: -d_row[v])
+        # Children before parents: order by tree depth, not distance (zero-cost
+        # links can tie distances, and the epsilon can round away at large distances).
+        depth = {}
+        for v in todo:
+            chain = []
+            while v not in depth:
+                p = p_row[v]
+                if p < 0:
+                    depth[v] = 0
+                    break
+                chain.append(v)
+                v = int(p)
+            base = depth[v]
+            for off, c in enumerate(reversed(chain), start=1):
+                depth[c] = base + off
+        nodes = sorted(todo, key=depth.__getitem__, reverse=True)
         load_l = load.tolist()
         for v in nodes:
             p = p_row[v]
