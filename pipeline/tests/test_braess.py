@@ -1,4 +1,4 @@
-"""4-node Braess network. Expected to FAIL until pipeline/lib/assign.py exists.
+"""4-node Braess network, run against pipeline/lib/assign.py.
 
 4000 vehicles S -> E. Costs in minutes, x = link flow:
   S-A: x/100   A-E: 45   S-B: 45   B-E: x/100   A-B (shortcut): 0
@@ -55,3 +55,12 @@ def test_so_with_shortcut():
 
 def test_so_without_shortcut_equals_ue():
     assert _solve(LINKS, "SO")["tstt"] == pytest.approx(260_000, rel=1e-4)
+
+
+def test_parallel_links_split_evenly():
+    from pipeline.lib.assign import solve
+    par = [{"id": i, "a_node": "A", "b_node": "B", "free_time": 1.0, "coef": 0.001, "power": 1.0}
+           for i in ("p1", "p2")]
+    res = solve(par, [("A", "B", 1000.0)], mode="UE", max_iter=500, rel_gap=1e-8)
+    assert res["flow"]["p1"] == pytest.approx(500, abs=0.5)
+    assert res["flow"]["p2"] == pytest.approx(500, abs=0.5)
