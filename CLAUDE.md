@@ -94,6 +94,24 @@ files and the fixtures in one commit, and tell the team.
 Units: time in minutes, TSTT in vehicle-minutes per AM peak hour, flow in
 vehicles per hour, length in meters.
 
+## Processed files (`data/processed/`, gitignored; pipeline-internal)
+Rebuild with `01_network.py` then `02_demand.py`. No pyarrow, so GeoPackage + CSV.
+- `network.gpkg` layer `links`: id (`L…`), a_node, b_node (`n…`), name,
+  road_class, lanes (per direction), capacity_vph, speed_mph, fftt_min,
+  length_m, oneway, in_focus, geometry (EPSG:4326). Layer `nodes`: id, lon, lat.
+- `connectors.csv`: id, a_node, b_node, length_m, fftt_min. Uncongested
+  (coef 0). Zone origin nodes `o<GEOID>` only have outgoing connectors and
+  destination nodes `d<GEOID>` only incoming, so no route passes through a zone.
+- `zones.csv`: geoid, lon, lat, origin_node, dest_node, n_connectors.
+- `od_jobs.csv`: h_tract, w_tract, origin_node, dest_node, jobs (LODES S000).
+- `od_am_peak.csv`: same + trips. Only written when all four demand factors in
+  config.yaml are set; deleted otherwise so stale trips can't be used.
+- `network_meta.json`, `demand_meta.json`: counts, drops, config snapshot.
+Solver links = road links (BPR: free_time = fftt_min, coef = fftt_min *
+alpha / capacity_vph**beta, power = beta) + connectors (coef 0).
+Overpass: overpass-api.de refuses our network; `network.overpass_url` points at
+a working mirror.
+
 ## Solver interface (same shape in Python and TS)
 Link cost: `t(x) = free_time + coef * x**power` (minutes). BPR maps to it as
 `free_time = t0`, `coef = t0 * alpha / capacity**beta`, `power = beta`.
